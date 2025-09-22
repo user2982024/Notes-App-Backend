@@ -49,40 +49,141 @@ router.post(
   }
 );
 
-router.put("/editnote/:id", 
+router.put(
+  "/editnote/:id",
   authMiddleware,
   [
-    body("title").optional().isLength({ max: 50 }).withMessage("Title must be less than 50 characters"),
-    body("description").optional().isLength({ max: 200 }).withMessage("Description cannot exceed 200 characters"),
-    body("Text").optional().isLength({ max: 1500 }).withMessage("Text cannot exceed 1500 characters")
+    body("title")
+      .optional()
+      .isLength({ max: 50 })
+      .withMessage("Title must be less than 50 characters"),
+    body("description")
+      .optional()
+      .isLength({ max: 200 })
+      .withMessage("Description cannot exceed 200 characters"),
+    body("Text")
+      .optional()
+      .isLength({ max: 1500 })
+      .withMessage("Text cannot exceed 1500 characters"),
   ],
   validateRequest,
   async (req, res) => {
-   try {
-     const { id } = req.params;
-    const { title, description, text } = req.body;
+    try {
+      const { id } = req.params;
+      const { title, description, text } = req.body;
 
-    const note = await Note.findById(req.params.id);
+      const note = await Note.findById(req.params.id);
+      if (!note) {
+        return res.status(404).json({ message: "Note not found" });
+      }
+
+      if (note.user.toString() !== req.user.userId) {
+        return res
+          .status(403)
+          .json({ message: "Not authorized to edit this note" });
+      }
+
+      if (title) note.title = title;
+      if (description) note.description = description;
+      if (text) note.text = text;
+
+      const updatedNote = await note.save();
+      return res
+        .status(200)
+        .json({ message: "Note updated successfully", note: updatedNote });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Something went wrong" });
+    }
+  }
+);
+
+router.delete("/deletenotes", authMiddleware, async (req, res) => {
+  try {
+    const result = await Note.deleteMany({ user: req.user.userId });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: "No notes found for this user" });
+    }
+
+    return res.status(200).json({
+      message: "All notes deleted successfully",
+      deletedCount: result.deletedCount,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
+});
+
+router.delete("/deletenote/:id", authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const note = await Note.findById(id);
+
     if (!note) {
       return res.status(404).json({ message: "Note not found" });
     }
 
     if (note.user.toString() !== req.user.userId) {
-      return res.status(403).json({ message: "Not authorized to edit this note" })
+      return res
+        .status(403)
+        .json({ message: "Not authorized to delete this note" });
     }
 
-    if (title) note.title = title;
-    if (description) note.description = description;
-    if (text) note.text = text;
-
-    const updatedNote = await note.save();
-    return res.status(200).json({ message: "Note updated successfully", note: updatedNote })
-   }
-   catch (err) {
+    await Note.findByIdAndDelete(id);
+    return res.status(200).json({ message: "Note deleted successfully" });
+  } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Something went wrong" });
-   }
   }
-)
+});
+
+router.get("/getnotes", authMiddleware, async (req, res) => {
+  try {
+    const notes = await Note.find({ user: req.user.userId }).sort({
+      createdAt: -1,
+    });
+
+    if (!notes || notes.length === 0) {
+      return res.status(404).json({ message: "No notes found" });
+    }
+
+    return res
+      .status(200)
+      .json({
+        message: "Notes fetched successfully",
+        count: notes.length,
+        notes,
+      });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Something went wrong" });
+  }
+});
+
+router.get("/getnote/:id", authMiddleware, async (req, res) => {
+  try {
+
+    const { id } = req.params;
+
+    const note = await Note.findById(id);
+
+    if (!note) {
+      return res.status(404).json({ message: "Note not found" });
+    }
+
+    if (note.user.toString() !== req.user.userId) {
+      return res.status(403).json({ message: "Note authorized tio view this note" });
+    }
+
+    return res.status(200).json({ message: "Note fetched successfully", note });
+  }
+  catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Something went wrong" });
+  }
+})
 
 module.exports = router;
