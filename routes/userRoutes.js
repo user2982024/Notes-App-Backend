@@ -3,12 +3,11 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const { body } = require("express-validator");
-const authMiddleware = require("../middlewares/authMiddleware");
 const validateRequest = require("../middlewares/validateRequest");
 
 const router = express.Router();
 
-// Signup route for the users
+// Route for user signup
 router.post(
   "/signup",
   [
@@ -46,6 +45,7 @@ router.post(
   }
 );
 
+// Route for user login
 router.post("/login", [
   body("email").isEmail().withMessage("Valid email required"),
   body("password").notEmpty().withMessage("Password is required"),

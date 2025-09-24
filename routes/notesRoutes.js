@@ -1,6 +1,4 @@
 const express = require("express");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
 const Note = require("../models/notes");
 const { body } = require("express-validator");
 const validateRequest = require("../middlewares/validateRequest");
@@ -8,6 +6,7 @@ const authMiddleware = require("../middlewares/authMiddleware");
 
 const router = express.Router();
 
+// Route for creating a note
 router.post(
   "/addnote",
   authMiddleware,
@@ -49,6 +48,7 @@ router.post(
   }
 );
 
+// Route for updating a note
 router.put(
   "/editnote/:id",
   authMiddleware,
@@ -61,7 +61,7 @@ router.put(
       .optional()
       .isLength({ max: 200 })
       .withMessage("Description cannot exceed 200 characters"),
-    body("Text")
+    body("text")
       .optional()
       .isLength({ max: 1500 })
       .withMessage("Text cannot exceed 1500 characters"),
@@ -98,6 +98,7 @@ router.put(
   }
 );
 
+// Route for deleting all notes of a user
 router.delete("/deletenotes", authMiddleware, async (req, res) => {
   try {
     const result = await Note.deleteMany({ user: req.user.userId });
@@ -116,6 +117,7 @@ router.delete("/deletenotes", authMiddleware, async (req, res) => {
   }
 });
 
+// Route for deleting a specific note of a user
 router.delete("/deletenote/:id", authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
@@ -140,11 +142,23 @@ router.delete("/deletenote/:id", authMiddleware, async (req, res) => {
   }
 });
 
+// Route for fetching all note og of a user
 router.get("/getnotes", authMiddleware, async (req, res) => {
   try {
+    let { page } = req.query;
+
+    page = parseInt(page) || 1;
+
+    const limit = 5;
+    const skip = (page - 1) * limit;
+
     const notes = await Note.find({ user: req.user.userId }).sort({
       createdAt: -1,
-    });
+    })
+    .skip(skip)
+    .limit(limit);
+
+    const totalNotes = await Note.countDocuments({ user: req.user.userId });
 
     if (!notes || notes.length === 0) {
       return res.status(404).json({ message: "No notes found" });
@@ -155,7 +169,11 @@ router.get("/getnotes", authMiddleware, async (req, res) => {
       .json({
         message: "Notes fetched successfully",
         count: notes.length,
-        notes,
+        totalNotes,
+        skip,
+        limit,
+        totalPage: Math.ceil(totalNotes / limit),
+        notes
       });
   } catch (err) {
     console.error(err);
@@ -163,6 +181,7 @@ router.get("/getnotes", authMiddleware, async (req, res) => {
   }
 });
 
+// Route for fetching a single note of a user
 router.get("/getnote/:id", authMiddleware, async (req, res) => {
   try {
 
@@ -175,7 +194,7 @@ router.get("/getnote/:id", authMiddleware, async (req, res) => {
     }
 
     if (note.user.toString() !== req.user.userId) {
-      return res.status(403).json({ message: "Note authorized tio view this note" });
+      return res.status(403).json({ message: "Note authorized to view this note" });
     }
 
     return res.status(200).json({ message: "Note fetched successfully", note });

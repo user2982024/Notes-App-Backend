@@ -1,5 +1,4 @@
 const express = require("express");
-const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const connectDB = require("./utils/db");
 const userRoutes = require("./routes/userRoutes");
