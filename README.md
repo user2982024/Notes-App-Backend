@@ -25,19 +25,19 @@ Centralized Error Handling
 
 Tech Stack
 
-Node.js (runtime)
+  Node.js (runtime)
 
-Express.js (framework)
+  Express.js (framework)
 
-MongoDB + Mongoose (database)
+  MongoDB + Mongoose (database)
 
-JWT (authentication)
+  JWT (authentication)
 
-bcrypt.js (password hashing)
+  bcrypt.js (password hashing)
 
-Helmet, Rate-Limit, Mongo-Sanitize, XSS-Clean (security)
+  Helmet, Rate-Limit, Mongo-Sanitize, XSS-Clean (security)
 
-Morgan (logging)
+  Morgan (logging)
 
 📂 Project Structure
 Backend/
@@ -53,16 +53,16 @@ Backend/
 
 Clone the repository
 
-git clone https://github.com/<your-username>/Notes-App-Backend.git
+  git clone https://github.com/<your-username>/Notes-App-Backend.git
 cd Notes-App-Backend
 
 
 Install dependencies
 
-npm install
+  npm install
 
 
-Create .env file in root
+  Create .env file in root
 
 MONGO_URI=mongodb://127.0.0.1:27017/myNotes
 PORT=5000
@@ -78,24 +78,24 @@ npm start
 
 or with nodemon:
 
-npm run dev
+  npm run dev
 
 🔑 API Endpoints
 Users
 
-POST /api/users/signup → Register a new user
+  POST /api/users/signup → Register a new user
 
-POST /api/users/login → Login & get JWT
+  POST /api/users/login → Login & get JWT
 
-📝 Notes
+Notes
 
-GET /api/notes → Get all notes (auth required)
+  GET /api/notes → Get all notes (auth required)
 
-POST /api/notes → Create a note
+  POST /api/notes → Create a note
 
-PUT /api/notes/:id → Update a note
+  PUT /api/notes/:id → Update a note
 
-DELETE /api/notes/:id → Delete a note
+  DELETE /api/notes/:id → Delete a note
 
 🔒 Security
 
