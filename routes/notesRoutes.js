@@ -142,7 +142,7 @@ router.delete("/deletenote/:id", authMiddleware, async (req, res) => {
   }
 });
 
-// Route for fetching all note og of a user
+// Route for fetching all notes of a user
 router.get("/getnotes", authMiddleware, async (req, res) => {
   try {
     let { page } = req.query;
